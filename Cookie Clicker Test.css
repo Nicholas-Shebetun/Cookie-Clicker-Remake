@@ -1,0 +1,1048 @@
+Let's make a game!
+	name: Cookie Clicker
+	by: Hoodie (og game by Orteil)
+	desc: Testing igm features by recreating a classic
+	created: 10/09/2026
+	updated: 12/09/2026
+	version: 1047
+
+Settings
+	tiling background:../cookieclicker/img/bgBlue.jpg
+	building cost increase:115%
+	building cost refund:25%
+	spritesheet:icons, 48 by 48, ../cookieclicker/img/icons.png
+	spritesheet:cookies, 48 by 48, ../cookieclicker/img/smallCookies.png
+	spritesheet:buildings, 64 by 64, ../cookieclicker/img/buildings.png
+	spritesheet:frames, 64 by 64, ../cookieclicker/img/upgradeFrameOld.png
+	spritesheet:cookies, 24 by 24, ../cookieclicker/img/smallCookies.png
+	stylesheet:stuff/bigBlue.css
+
+	no bulk particles
+
+
+Includes
+	*include ClickUFormula %upgrade
+		if (have clickU[%upgrade])
+			$yield = $yield + (cookies:ps * 0.01)
+		end
+
+	*include ClickFormula
+		$yield = 1
+
+		if (have cursorU1) $yield = $yield + 1
+		if (have cursorU2) $yield = $yield + 2
+		if (have cursorU3) $yield = $yield + 4
+
+		[include ClickUFormula %upgrade="1"]
+		[include ClickUFormula %upgrade="2"]
+		[include ClickUFormula %upgrade="3"]
+		[include ClickUFormula %upgrade="4"]
+		[include ClickUFormula %upgrade="5"]
+		[include ClickUFormula %upgrade="6"]
+		[include ClickUFormula %upgrade="7"]
+		[include ClickUFormula %upgrade="8"]
+		[include ClickUFormula %upgrade="9"]
+
+		if (cfrenzy) $yield = $yield * 777
+		
+		yield $yield cookies
+		yield $yield clickedCookies
+
+
+	*include Lucky
+		$gain = (min(cookies/10 + 13, cookies:ps*1200 + 13))
+		toast <b>Lucky!</b> <//> +<b>[$gain] cookies</b>.
+		yield $gain cookies
+
+	*include Frenzy
+		$val = 77
+		if (have goldenU3) $val=154
+		toast <b>Frenzy!</b> <//> <b>x7</b> production for <b>[$val]</b> seconds!
+		yield $val frenzy
+
+	*include ClickFrenzy
+		$val = 13
+		if (have goldenU3) $val=26
+		toast <b>Click Frenzy!</b> <//> <b>x777</b> click power for <b>[$val]</b> seconds!
+		yield $val cfrenzy
+
+	*include special %building
+		*[%building]special
+			name: [%building] special
+			always hidden
+
+	//Building special timer (check Checker in Buildings)
+	*include activateSpecial %booster %boost="1"
+		if ([%booster])
+			multiply yield of :Buildings by [%boost]
+			lose 1 [%booster]
+		end
+
+	*include BSHelper %select %selected %building %slots %toast
+		$select2 = [%select]
+		$slots2 = [%slots]
+		if ($select2 = 1 and $slots2 % 10 = 1)
+			$val = 30
+			if (have goldenU3) $val=60
+			toast <b>[%toast]</b> <//> CPS is boosted by <b>[[%building] * 10]%</b> for <b>[$val] seconds</b>!
+			[%selected] = [%building]
+			[%select] = 0
+			yield $val [%building]special
+		else
+			if (!($slots2 % 10 = 0)) [%select] = [%select] - 1
+			[%slots] = round([%slots] / 10)
+		end
+
+	*include BuildingSpecial
+		$eligible = 0
+		$slots = 0
+		if (cursor > 10) 
+			$eligible = $eligible + 1
+			$slots = $slots + 1
+		end
+		if (grandma > 10) 
+			$eligible = $eligible + 1
+			$slots = $slots + 10
+		end
+		if (farm > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 100
+		end
+		if (factory > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 1000
+		end
+		if (mine > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 10000
+		end
+		if (shipment > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 100000
+		end
+		if (lab > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 1000000
+		end
+		if (portal > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 10000000
+		end
+		if (machine > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 100000000
+		end
+		if (condenser > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 1000000000
+		end
+		if (prism > 10)
+			$eligible = $eligible + 1
+			$slots = $slots + 10000000000
+		end
+		$select = random(1,$eligible)
+		$selected = 0
+
+		[include BSHelper %select="$select" %selected="$selected" %building="cursor" %slots="$slots" %toast="High five!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="grandma" %slots="$slots" %toast="Congregation!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="farm" %slots="$slots" %toast="Luxurious Harvest!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="factory" %slots="$slots" %toast="Oiled Up!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="mine" %slots="$slots" %toast="Ore Vein!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="shipment" %slots="$slots" %toast="Delicious Lifeforms!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="lab" %slots="$slots" %toast="Breakthrough!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="portal" %slots="$slots" %toast="Righteous Cataclysm!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="machine" %slots="$slots" %toast="Golden Ages!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="condenser" %slots="$slots" %toast="Extra Cycles!"]
+		[include BSHelper %select="$select" %selected="$selected" %building="prism" %slots="$slots" %toast="Solar flare!"]
+
+	//Formula for buildings (see buildings section)
+	*include building %id %name %desc %icon %cost %yield %req
+		*[%id]
+			name:[%name]
+			desc:[%desc] <//> Each [%name] produces <b>[(([%yield] + [%id]Add) * [%id]Mult * globalMult)].[(([%yield] + [%id]Add) * [%id]Mult * globalMult * 10 % 10)]</b> cookies per second. <//> [this] [%name]s producing <b>[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult)].[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult * 10 % 10)]</b> cookies per second.
+			icon:buildings[%icon]
+			cost:[%cost] cookies
+			on tick:yield (([%yield] + [%id]Add) * [%id]Mult * globalMult) cookies
+			req:[%req] cookies:earned
+
+	//Creates shadows for the buildings (see buildings section)
+	*include buildShadow %id %id2 %icon %cost %startwith
+		*[%id]Shadow
+			name:???
+			icon:buildings[%icon]
+			cost:[%cost] cookies
+			start with:[%startwith]
+			hidden when 0
+			no text
+			no tooltip
+			on tick: 
+				if (cookies:earned >= [%cost] / 10) 
+					lose 1 [%id]Shadow
+					//[%id2] is the building two below the current one
+					//will appear when the building is first bought
+					grant 1 [%id2]Shadow
+				end
+			end
+
+
+	*include addMult %building
+		*[%building]Add
+			hidden
+
+		*[%building]Mult
+			start with:1
+			hidden
+
+
+	*include cookieAchievement %id %name %val %req %icon
+		*[%id]
+			name:[%name]
+			desc:Bake <b>[%val]</b> cookies.
+			req:[%req] cookies:earned
+			icon:icons[%icon]
+
+	*include cookiePSAchievement %id %name %val %req %icon
+		*[%id]
+			name:[%name]
+			desc:Bake <b>[%val]</b> cookies per second.
+			req:[%req] cookies:ps
+			icon:icons[%icon]
+
+	*include clickAchievement %id %name %val %req %icon
+		*[%id]
+			name:[%name]
+			desc:Make <b>[%val]</b> cookies from clicking.
+			req:[%req] clickedCookies
+			icon:icons[%icon]
+
+	*include buildAchievement %id %name %val %building %icon
+		*[%id]
+			name:[%name]
+			desc:Have <b>[%val]</b> [%building]s.
+			req:[%val] [%building]
+			icon:icons[%icon]
+
+	*include buildingA %id %name %val %icon
+		*[%id]
+			name:[%name]
+			desc:Own <b>[%val]</b> buildings.
+			req:[%val] totalBuildings
+			icon:icons[%icon]
+
+	*include upgradeA %id %name %val %icon
+		*[%id]
+			name:[%name]
+			desc:Purchase <b>[%val]</b> upgrades.
+			req:[%val] totalUpgrades
+			icon:icons[%icon]
+
+	*include goldenCookieA %id %name %val %icon
+		*[%id]
+			name:[%name]
+			desc:Click <b>[%val] golden cookies</b>.
+			req:[%val] clickedGoldenCookie
+			icon:icons[10,14]
+
+
+	*include fingers %id %name %val %q %cost %req %icon
+		*[%id]
+			name:[%name] fingers
+			desc:The mouse and cursors gain <b>+[%val]</b> cookies for each non-cursor object owned. <//> <q>[%q]</q>
+			passive:grant ([%val] * (totalBuildings - cursor) / 4) cursorAdd
+			cost:[%cost] cookies
+			req: (cursor >= [%req])
+			icon:icons[%icon]
+
+	*include clickU %id %name %q %cost %req %icon
+		*clickU[%id]
+			name:[%name] mouse
+			desc:Clicking gains <b>+1% of your CpS.</b> <//> <q>[%q]</q>
+			cost:[%cost] cookies
+			req:[%req]
+			icon:icons[%icon]
+
+	*include buildingAddU %building %buildingname %id %name %val %q %cost %req %icon
+		*[%id]
+			name:[%name]
+			desc:[%buildingname] gain <b>+[%val]</b> base CpS. <//> <q>[%q]</q>
+			passive:grant [%val] [%building]Add
+			cost:[%cost] cookies
+			req:([%building] >= [%req])
+			icon:icons[%icon]
+
+	*include buildingMultU %building %buildingname %id %name %q %cost %req %icon
+		*[%id]
+			name:[%name]
+			desc:[%buildingname] are <b>twice</b> as efficient. <//> <q>[%q]</q>
+			on earn:[%building]Mult = [%building]Mult * 2
+			cost:[%cost] cookies
+			req:([%building] >= [%req])
+			icon:icons[%icon]
+
+	*include elderU %id %name %q %building %val %p %cost %icon
+		*elder[%id]
+			name:[%name]grandmas
+			desc:Grandmas are <b>twice</b> as efficient. [%building]s gain <b>[%val]</b> base CpS per grandma (currently [[%building] * [%val]]). <//> <q>[%q]</q>
+			on earn:grandmaMult = grandmaMult * 2
+			passive:grant ([%val] * grandma) [%building]Add
+			cost:[%cost] cookies
+			req:([%building] >= 15 and grandma >= 1)
+			icon:icons[%icon]
+			tag:elder
+
+	*include cookieU %id %name %q %val %cost %req %icon
+		*cookieU[%id]
+			name:[%name]
+			desc:Cookie production multiplier <b>+[%val]%</b>. <//> <q>[%q]</q>
+			on earn:yield ([%val] * 0.01) cookieMult
+			cost:[%cost] cookies
+			req:[%req] cookies:earned
+			icon:icons[%icon]
+
+	*include milkU %id %name %q %val %cost %req %icon
+		*milkU[%id]
+			name:[%name]
+			desc:You gain <b>+[%val]% CpS</b> per achievement you get. <//> <q>[%q]</q>
+			cost:[%cost] cookies
+			req:[%req] totalAchievements
+			icon:icons[%icon]
+
+
+CSS
+	#game
+	{
+		font-family: Tahoma, sans-serif;
+		letter-spacing: 0px;
+	}
+	#game .fullWidth {
+  		min-height: auto;
+	}
+	.bigButton > .thing-icon
+	{
+		background-size:contain
+	}
+	.wobble 
+	{
+  		animation:wobble 0.65s;
+	}
+
+	.fullWidth, .fullWidth:hover
+	{
+		background: linear-gradient(to right,rgba(0, 0, 0, 0.4) 0%,rgba(0, 0, 0, 0.4) 50%,rgba(0, 0, 0, 0.4) 100%);
+	}
+	#box-res.fullWidth
+	{
+		top: 7%;
+		height: 7%;
+	}
+	#box-things-Resources
+	{
+		vertical-align:middle;
+	}
+	.cookieTitle > div
+	{
+		font-size: 32px;
+		font-family: Georgia;
+	}
+	#shinies > .bigButton
+	{
+		height: 128px;
+		width: 128px;
+	}
+	#particles .particle:nth-child(even) {
+  		display: none;
+		opacity: 0;
+	}
+
+
+Layout
+	*store
+  		contains:buildings, upgrades
+  	*buildings
+    	contains:BulkDisplay, Buildings
+    	header:Buildings
+    	tooltip origin:left
+  	*upgrades
+    	contains:Upgrades
+    	header:Upgrades
+    	costs:hide
+    	names:hide
+	*main
+  		contains:res, buttons
+  	*res
+    	contains:Resources
+    	class:fullWidth
+  	*buttons
+    	contains:Buttons
+
+Buttons
+    *bigCookie
+        name:Big Cookie
+        desc:Point of the game
+        on click:anim icon wobble
+        on click:
+			[include ClickFormula]
+		end
+        icon:../cookieclicker/img/perfectCookie.png
+        no text
+        class:bigButton hasFlares
+        icon class:shadowed
+        tooltip origin:bottom
+        tooltip class:red
+
+
+
+Resources
+	*cookie|cookies
+		name:Cookie|Cookies
+        class:noBackground cookieTitle
+        show earned
+
+	*clickedCookie|clickedCookies
+		name:Clicked
+		always hidden
+
+	*clickedGoldenCookie|clickedGoldenCookies
+		always hidden
+
+	*globalMult
+		class:noBackground
+		show earned
+		is always:(cookieMult * milkMult)
+
+	*cookieMult
+		start with:1
+		hidden
+
+	*milkMult
+		hidden
+		is always:(1 + have milkU1 * 0.002 * totalAchievements) * (1 + have milkU2 * 0.004 * totalAchievements) * (1 + have milkU3 * 0.008 * totalAchievements) * (1 + have milkU4 * 0.008 * totalAchievements) * (1 + have milkU5 * 0.008 * totalAchievements)
+
+
+	[include addMult %building="cursor"]
+	[include addMult %building="grandma"]
+	[include addMult %building="farm"]
+	[include addMult %building="factory"]
+	[include addMult %building="mine"]
+	[include addMult %building="shipment"]
+	[include addMult %building="lab"]
+	[include addMult %building="portal"]
+	[include addMult %building="machine"]
+	[include addMult %building="condenser"]
+	[include addMult %building="prism"]
+
+	*totalBuildings
+		name:Buidlings owned
+		class:noBackground
+		is always:(cursor+grandma+farm+factory+mine+shipment+lab+portal+machine+condenser+prism)
+
+	*totalUpgrades
+		name:Upgrades owned
+		class:noBackground
+
+	*totalAchievements
+		hidden
+
+
+	//All of the golden cookie timers
+	*frenzy
+		name: Frenzy
+		hidden
+
+	[include special %building="cursor"]
+	[include special %building="grandma"]
+	[include special %building="farm"]
+	[include special %building="factory"]
+	[include special %building="mine"]
+	[include special %building="shipment"]
+	[include special %building="lab"]
+	[include special %building="portal"]
+	[include special %building="machine"]
+	[include special %building="condenser"]
+	[include special %building="prism"]
+
+	*cfrenzy
+		name: Click Frenzy
+		hidden
+	*chainmult
+		name: Cookie Chain Multiplier
+		hidden
+		start with:2
+	*storm
+		name: Cookie Storm
+		hidden
+	*research
+		name: Research
+		hidden when 0
+
+
+Shinies
+	*goldenCookie
+		on click:log Woop
+		duration: 13
+		movement:onThing:bigCookie fade growShrink pulse:0.05 wiggle:0.01
+        frequency:420
+        frequency variation:120
+		icon:../cookieclicker/img/goldCookie.png
+		class:bigButton
+		on click:
+			yield 1 clickedGoldenCookies
+			chainmult is 1
+			$effect = random(1,100)
+			if ($effect < 44)
+				[include Lucky]
+			end
+			if ($effect < 82 and $effect > 43)
+				[include Frenzy]
+			end
+			if ($effect < 87 and $effect > 81)
+				[include ClickFrenzy]
+			end
+			if ($effect < 97 and $effect > 86)
+				if ((cursor > 10) or (grandma > 10) or (farm > 10) or (factory > 10) or (mine > 10) or (shipment > 10) or (lab > 10) or (portal > 10) or (machine > 10) or (condenser > 10) or (prism > 10)) 
+					[include BuildingSpecial]
+				else
+					$boost = random(1,2)
+					if ($boost = 1)
+						[include Frenzy]
+					else
+						[include ClickFrenzy]
+					end
+				end
+			end
+			if ($effect < 100 and $effect > 96)
+				if (cookies:earned > 100000)
+					toast <b>Cookie Chain!</b> <//> Got 777 cookies!
+					yield 777 cookies
+					spawn cookieChain
+				else
+					[i:ClickFrenzy]
+				end
+			end
+			if ($effect = 100)
+				toast Cookies storm!
+				yield 7 storm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+				spawn cookieStorm
+			end
+		end
+
+	*cookieChain		
+		on click:log Woop
+		duration:3
+		movement:onThing:bigCookie fade growShrink pulse:0.05 wiggle:0.01
+		icon:../cookieclicker/img/goldCookie.png
+		class:bigButton
+		on click:
+			$yield = 777 * pow(10, chainmult) + 7 * pow(10, chainmult - 1)
+			yield $yield cookies
+			if (($yield * 10 + 7) < cookies:ps * 21600 and ($yield * 10 + 7) < cookies / 2)
+				toast <b>Cookie Chain!</b> <//> Got [$yield] cookies!
+				yield 1 chainmult
+				spawn cookieChain
+			else
+				toast <b>Cookie Chain over.</b> <//> Got [$yield] cookies.
+			end
+		end
+
+	*cookieStorm
+		on click:log Woop
+		duration:13
+		movement:anywhere fade growShrink pulse:0.05 wiggle:0.01
+		icon:../cookieclicker/img/goldCookie.png
+		class:bigButton
+		on click:
+			if (storm)
+				spawn cookieStorm
+				spawn cookieStorm
+			end
+			$yield = random(cookies:ps * 60, cookies:ps * 420)
+			yield $yield cookies
+			toast <b>Lucky!</b> <//> +<b>[$yield] cookies</b>.
+		end
+
+
+Buildings
+	*TEMPLATE
+		on click:anim glow
+
+	*checker
+		name:Checker
+		desc:You shouldn't be seeing this.
+		start with:1
+		always hidden
+		on tick:
+			[include activateSpecial %booster="frenzy" %boost="7"]
+			[include activateSpecial %booster="cfrenzy"]
+			[include activateSpecial %booster="storm"]
+			[include activateSpecial %booster="cursorspecial" %boost="cursor*0.1 + 1"]
+			[include activateSpecial %booster="grandmaspecial" %boost="grandma*0.1 + 1"]
+			[include activateSpecial %booster="farmspecial" %boost="farm*0.1 + 1"]
+			[include activateSpecial %booster="factoryspecial" %boost="factory*0.1 + 1"]
+			[include activateSpecial %booster="minespecial" %boost="mine*0.1 + 1"]
+			[include activateSpecial %booster="shipmentspecial" %boost="shipment*0.1 + 1"]
+			[include activateSpecial %booster="labspecial" %boost="lab*0.1 + 1"]
+			[include activateSpecial %booster="portalspecial" %boost="portal*0.1 + 1"]
+			[include activateSpecial %booster="machinespecial" %boost="machine*0.1 + 1"]
+			[include activateSpecial %booster="condenserspecial" %boost="condenser*0.1 + 1"]
+			[include activateSpecial %booster="prismspecial" %boost="prism*0.1 + 1"]
+
+			[include activateSpecial %booster="research"]
+		end
+
+	*checkerShadow
+		name:CheckerShadow
+		always hidden
+
+	*cursor|cursors
+		name:Cursor|Cursor
+		desc:Autoclicks once every 10 seconds. <//> each cursor produces <b>[((0.1 + cursorAdd) * cursorMult * globalMult)].[((0.1 + cursorAdd) * cursorMult * globalMult * 10 % 10)]</b> cookies per second <//> [this] cursors producing <b>[((0.1 + cursorAdd) * this * cursorMult * globalMult)].[((0.1 + cursorAdd) * this * cursorMult * globalMult * 10 % 10)]</b> per second
+		icon:buildings[0,0]
+		cost:10 cookies
+		on tick:yield ((0.1 + cursorAdd) * cursorMult * globalMult) cookies
+		unlocked
+
+	[include building %id="grandma" %name="Grandma" %desc="A nice grandma to bake more cookies." %icon="[0,1]" %cost="100" %yield="1" %req="100"]
+	[include buildShadow %id="grandma" %id2="factory" %icon="[1,1]" %cost="1000" %startwith="1"]
+
+	[include building %id="farm" %name="Farm" %desc="Grows cookies plants from cookie seeds." %icon="[0,3]" %cost="600" %yield="5" %req="600"]
+	[include buildShadow %id="farm" %id2="mine" %icon="[1,3]" %cost="6000" %startwith="1"]
+
+	[include building %id="factory" %name="Factory" %desc="Produces large quantities of cookies." %icon="[0,5]" %cost="3000" %yield="15" %req="3000"]
+	[include buildShadow %id="factory" %id2="shipment" %icon="[1,5]" %cost="30000" %startwith="0"]
+
+	[include building %id="mine" %name="Mine" %desc="Mines out cookie dough and chocolate chips." %icon="[0,4]" %cost="13000" %yield="50" %req="13000"]
+	[include buildShadow %id="mine" %id2="lab" %icon="[1,4]" %cost="130000" %startwith="0"]
+
+	[include building %id="shipment" %name="Shipment" %desc="Brings in fresh cookies from the cookie planet." %icon="[0,9]" %cost="75000" %yield="200" %req="75000"]
+	[include buildShadow %id="shipment" %id2="portal" %icon="[1,9]" %cost="750000" %startwith="0"]
+
+	[include building %id="lab" %name="Alchemy Lab" %desc="Turns gold into cookies!" %icon="[0,10]" %cost="500000" %yield="1000" %req="500000"]
+	[include buildShadow %id="lab" %id2="machine" %icon="[1,10]" %cost="5000000" %startwith="0"]
+
+	[include building %id="portal" %name="Portal" %desc="Opens a door to the Cookieverse." %icon="[0,11]" %cost="3666667" %yield="6666" %req="3666667"]
+	[include buildShadow %id="portal" %id2="condenser" %icon="[1,11]" %cost="3666667" %startwith="0"]
+
+	[include building %id="machine" %name="Time Machine" %desc="Brings in cookies from the past, before they were even eaten." %icon="[0,12]" %cost="140801600" %yield="88888" %req="140801600"]
+	[include buildShadow %id="machine" %id2="prism" %icon="[1,12]" %cost="1408016000" %startwith="0"]
+
+	[include building %id="condenser" %name="Antimatter Condenser" %desc="Condenses the antimatter in the universe into cookies." %icon="[0,13]" %cost="5000000000" %yield="899999" %req="5000000000"]
+	[include buildShadow %id="condenser" %id2="checker" %icon="[1,13]" %cost="50000000000" %startwith="0"]
+
+	[include building %id="prism" %name="Prism" %desc="Converts light itself into cookies." %icon="[0,14]" %cost="125000000000" %yield="8500000" %req="125000000000"]
+	[include buildShadow %id="prism" %id2="checker" %icon="[1,14]" %cost="1250000000000" %startwith="0"]
+
+Upgrades
+	*TEMPLATE
+		on click:anim glow
+		passive:grant 1 totalUpgrades
+
+	*cursorU1
+		name:Reinforced index finger
+		desc:The mouse gains <b>+1</b> cookies per click. <//> Cursors gain <b>+0.1</b> base CpS. <//> <q>prod prod</q>
+		passive:grant 0.1 cursorAdd
+		cost:100 cookies
+		req:(cursor >= 1)
+		icon:icons[0,0]
+
+	*cursorU2
+		name:Carpal tunnel prevention cream
+		desc:The mouse and cursors are <b>twice</b> as efficient. <//> <q>it... it hurts to click...</q>
+		on earn:cursorMult = cursorMult * 2
+		cost:500 cookies
+		req:(cursor >= 1)
+		icon:icons[0,0]
+
+	*cursorU3
+		name:Ambidextrous
+		desc:The mouse and cursors are <b>twice</b> as efficient. <//> <q>Look ma, both hands!</q>
+		on earn:cursorMult = cursorMult * 2
+		cost:5000 cookies
+		req:(cursor >= 10)
+		icon:icons[0,6]
+
+	[include fingers %id="cursorU4" %name="Thousand" %val="0.3" %q="clickity" %cost="500000" %req="20" %icon="[1,6]"]
+	[include fingers %id="cursorU5" %name="Million" %val="2.1" %q="clickityclickity" %cost="50000000" %req="40" %icon="[12,1]"]
+	[include fingers %id="cursorU6" %name="Billion" %val="7.6" %q="clickityclickityclickity" %cost="500000000" %req="80" %icon="[12,1]"]
+	[include fingers %id="cursorU7" %name="Trillion" %val="40" %q="clickityclickityclickityclickity" %cost="50000000000" %req="120" %icon="[12,2]"]
+	[include fingers %id="cursorU8" %name="Quadrillion" %val="80" %q="clickityclickityclickityclickityclick" %cost="500000000000" %req="160" %icon="[12,2]"]
+	[include fingers %id="cursorU9" %name="Quintillion" %val="400" %q="man, just go click click click click click, it's real easy, man." %cost="50000000000000" %req="200" %icon="[12,13]"]
+	[include fingers %id="cursorU10" %name="Sextillion" %val="800" %q="sometimes <//> thing just <//> click" %cost="500000000000000" %req="240" %icon="[12,13]"]
+	[include fingers %id="cursorU11" %name="Septillion" %val="1600" %q="cursory flavor text" %cost="5000000000000000" %req="280" %icon="[12,14]"]
+	[include fingers %id="cursorU12" %name="Octillion" %val="3200" %q="Turns out you <b>can</b> quite put your finger on it." %cost="50000000000000000" %req="320" %icon="[12,15]"]
+
+	[include clickU %id="1" %name="Plastic" %q="Slightly squeaky." %cost="50000" %req="have clickA1" %icon="[11,0]"]
+	[include clickU %id="2" %name="Iron" %q="Click like it's 1,349!" %cost="5000000" %req="have clickA2" %icon="[11,0]"]
+	[include clickU %id="3" %name="Titanium" %q="Heavy, but powerful." %cost="500000000" %req="have clickA3" %icon="[11,1]"]
+	[include clickU %id="4" %name="Tungsten" %q="Clicking so hot, it makes cookies!" %cost="50000000000" %req="have clickA4" %icon="[11,2]"]
+	[include clickU %id="5" %name="Adamantium" %q="You could cut diamond with these." %cost="5000000000000" %req="have clickA5" %icon="[11,13]"]
+	[include clickU %id="6" %name="Renderite" %q="It's out of this world!" %cost="500000000000000" %req="have clickA6" %icon="[11,13]"]
+	[include clickU %id="7" %name="Unobtanium" %q="These nice mice should suffice." %cost="50000000000000000" %req="have clickA7" %icon="[11,14]"]
+	[include clickU %id="8" %name="Eludium" %q="I rodent do that if I were you." %cost="5000000000000000000" %req="have clickA8" %icon="[11,15]"]
+	[include clickU %id="9" %name="Wishallow" %q="Clicking is fine and dandy, but don't smash your mouse over it. Get your game on. Go play." %cost="500000000000000000000" %req="have clickA9" %icon="[11,15]"]
+
+
+	[include buildingAddU %building="grandma" %buildingname="Grandmas" %id="grandmaU1" %name="Forwards from grandma" %val="0.3" %q="RE:RE:thought you'd get a kick out of this ;))" %cost="1000" %req="1" %icon="[1,0]"]
+	[include buildingMultU %building="grandma" %buildingname="Grandmas" %id="grandmaU2" %name="Steel-plated rolling pins" %q="Just what you kneaded." %cost="10000" %req="1" %icon="[1,1]"]
+	[include buildingMultU %building="grandma" %buildingname="Grandmas" %id="grandmaU3" %name="Lubricated dentures" %q="squish" %cost="100000" %req="25" %icon="[1,2]"]
+	[include buildingMultU %building="grandma" %buildingname="Grandmas" %id="grandmaU4" %name="Prune juice" %q="Gets me going." %cost="5000000" %req="50" %icon="[1,13]"]
+	[include buildingMultU %building="grandma" %buildingname="Grandmas" %id="grandmaU5" %name="Double-thick glasses" %q="Oh...so THAT's what I've been baking." %cost="1000000000" %req="100" %icon="[1,14]"]
+	[include buildingMultU %building="grandma" %buildingname="Grandmas" %id="grandmaU6" %name="Aging agents" %q="Counter-intuitively, grandmas have the uncanny ability to become more powerful the older they get." %cost="800000000000" %req="200" %icon="[1,15]"]
+
+	[include elderU %id="1" %name="Farmer " %q="A nice farmer to grow more cookies." %building="farm" %val="0.1" %cost="70000" %icon="[10,9]"]
+	[include elderU %id="2" %name="Worker " %q="A nice worker to manufacture more cookies." %building="factory" %val="0.15" %cost="400000" %icon="[10,9]"]
+	[include elderU %id="3" %name="Miner " %q="A nice miner to dig more cookies." %building="mine" %val="0.25" %cost="1400000" %icon="[10,9]"]
+	[include elderU %id="4" %name="Cosmic " %q="A nice thing to... uh... cookies." %building="shipment" %val="0.8" %cost="7500000" %icon="[10,9]"]
+	[include elderU %id="5" %name="Transmuted " %q="A nice golden grandma to convert into more cookies." %building="lab" %val="3" %cost="50000000" %icon="[10,9]"]
+	[include elderU %id="6" %name="Altered " %q="a NiCe GrAnDmA tO bA##########" %building="portal" %val="8" %cost="366666667" %icon="[10,9]"]
+	[include elderU %id="7" %name="Grandmas' " %q="A nice grandma's nice grandma to bake double the cookies." %building="machine" %val="50" %cost="14080160000" %icon="[10,9]"]
+	[include elderU %id="8" %name="Anti" %q="A mean antigrandma to vomit more cookies. <//> (Do not put in contact with normal grandmas; loss of matter may occur.)" %building="condenser" %val="275" %cost="500000000000" %icon="[10,9]"]
+	[include elderU %id="9" %name="Rainbow " %q="A luminous grandma to sparkle into cookies." %building="prism" %val="1100" %cost="12500000000000" %icon="[10,9]"]
+
+
+	[include buildingAddU %building="farm" %buildingname="Farms" %id="farmU1" %name="Cheap hoes" %val="1" %q="Rake in the dough!" %cost="6000" %req="1" %icon="[2,0]"]
+	[include buildingMultU %building="farm" %buildingname="Farms" %id="farmU2" %name="Fertilizer" %q="It's chocolate, I swear." %cost="60000" %req="1" %icon="[2,1]"]
+	[include buildingMultU %building="farm" %buildingname="Farms" %id="farmU3" %name="Cookie trees" %q="A relative of the breadfruit." %cost="600000" %req="25" %icon="[2,2]"]
+	[include buildingMultU %building="farm" %buildingname="Farms" %id="farmU4" %name="Genetically-modified cookies" %q="All-natural mutations." %cost="30000000" %req="50" %icon="[2,13]"]
+	[include buildingMultU %building="farm" %buildingname="Farms" %id="farmU5" %name="Gingerbread scarecrows" %q="Staring at your crops with mischievous glee." %cost="6000000000" %req="100" %icon="[2,14]"]
+
+	[include buildingAddU %building="factory" %buildingname="Factory" %id="factoryU1" %name="Sturdier conveyor belts" %val="5" %q="You're going places." %cost="30000" %req="1" %icon="[4,0]"]
+	[include buildingMultU %building="factory" %buildingname="Factory" %id="factoryU2" %name="Child labour" %q="Cheaper, healthier workforce." %cost="300000" %req="1" %icon="[4,1]"]
+	[include buildingMultU %building="factory" %buildingname="Factory" %id="factoryU3" %name="Sweatshop" %q="Slackers will be terminated." %cost="3000000" %req="25" %icon="[4,2]"]
+	[include buildingMultU %building="factory" %buildingname="Factory" %id="factoryU4" %name="Radium reactors" %q="Gives your cookies a healthy glow." %cost="150000000" %req="50" %icon="[4,13]"]
+	[include buildingMultU %building="factory" %buildingname="Factory" %id="factoryU5" %name="Recombobulators" %q="A major part of cookie recombobulation." %cost="30000000000" %req="100" %icon="[4,14]"]
+
+	*farfacSyn1
+		name:Factory farming
+		desc:Farms gain <b>+7 base CpS</b> per factory (currently [7 * farm]). Factories gain <b>+7 base CpS</b> per farm (currently [7 * factory]). <//> <q>The bulldozer of innovation!</q>
+		passive:grant (7 * farm) factoryAdd
+		passive:grant (7 * factory) farmAdd
+		cost:900000000 cookies
+		req:(farm >= 50 and factory >= 50)
+		icon:icons[2,20]
+
+	*farfacSyn2
+		name:Self driving tractors
+		desc:Farms gain <b>+70 base CpS</b> per factory (currently [70 * farm]). Factories gain <b>+70 base CpS</b> per farm (currently [70 * factory]). <//> <q>They also make good crop protectors.</q>
+		passive:grant (70 * farm) factoryAdd
+		passive:grant (70 * factory) farmAdd
+		cost:45000000000 cookies
+		req:(farm >= 100 and factory >= 100)
+		icon:icons[4,20]
+
+	[include buildingAddU %building="mine" %buildingname="Mine" %id="mineU1" %name="Sugar as" %val="10" %q="A pink, volatile gas, found in the depths of some chocolate caves." %cost="130000" %req="1" %icon="[3,0]"]
+	[include buildingMultU %building="mine" %buildingname="Mine" %id="mineU2" %name="Megadrill" %q="You're in deep." %cost="1300000" %req="1" %icon="[3,1]"]
+	[include buildingMultU %building="mine" %buildingname="Mine" %id="mineU3" %name="Ultradrill" %q="Finally caved in?" %cost="13000000" %req="25" %icon="[3,2]"]
+	[include buildingMultU %building="mine" %buildingname="Mine" %id="mineU4" %name="Ultimadrill" %q="Pierce the heavens, etc." %cost="650000000" %req="50" %icon="[3,13]"]
+	[include buildingMultU %building="mine" %buildingname="Mine" %id="mineU5" %name="H-bomb mining" %q="Questionable efficiency, but spectacular nonetheless." %cost="130000000000" %req="100" %icon="[3,14]"]
+
+	[include buildingAddU %building="shipment" %buildingname="Shipment" %id="shipmentU1" %name="Vanilla nebulae" %val="50" %q="If you removed your space helmet, you could probably smell it! <//> (Note: don't do that.)" %cost="750000" %req="1" %icon="[5,0]"]
+	[include buildingMultU %building="shipment" %buildingname="Shipment" %id="shipmentU2" %name="Wormholes" %q="By using these as shortcuts, your ships can travel much faster." %cost="7500000" %req="1" %icon="[5,1]"]
+	[include buildingMultU %building="shipment" %buildingname="Shipment" %id="shipmentU3" %name="Frequent flyer" %q="Come back soon!" %cost="75000000" %req="25" %icon="[5,2]"]
+	[include buildingMultU %building="shipment" %buildingname="Shipment" %id="shipmentU4" %name="Warp drive" %q="To boldly bake." %cost="3750000000" %req="50" %icon="[5,13]"]
+	[include buildingMultU %building="shipment" %buildingname="Shipment" %id="shipmentU5" %name="Chocolate monoliths" %q="My god. It's full of chocolate bars." %cost="75000000000" %req="100" %icon="[5,14]"]
+
+	[include buildingAddU %building="lab" %buildingname="Alchemy lab" %id="labU1" %name="Antimony" %val="300" %q="Actually worth a lot of mony." %cost="5000000" %req="1" %icon="[6,0]"]
+	[include buildingMultU %building="lab" %buildingname="Alchemy lab" %id="labU2" %name="Essence of dough" %q="Extracted through the 5 ancient steps of alchemical baking." %cost="50000000" %req="1" %icon="[6,1]"]
+	[include buildingMultU %building="lab" %buildingname="Alchemy lab" %id="labU3" %name="True chocolate" %q="The purest form of cacao." %cost="500000000" %req="25" %icon="[6,2]"]
+	[include buildingMultU %building="lab" %buildingname="Alchemy lab" %id="labU4" %name="Ambrosia" %q="Adding this to the cookie mix is sure to make them even more addictive! Perhaps dangerously so. Let's hope you can keep selling these legally" %cost="25000000000" %req="50" %icon="[6,13]"]
+	[include buildingMultU %building="lab" %buildingname="Alchemy lab" %id="labU5" %name="Aqua crustulae" %q="Careful with the dosing - one drop too much and you get muffins. And nobody likes muffins." %cost="500000000000" %req="100" %icon="[6,14]"]
+
+	*minlabSyn1
+		name:Gem mine
+		desc:Mines gain <b>+10 base CpS</b> per alchemy lab (currently [10 * mine]). Alchemy labs gain <b>+10 base CpS</b> per mine (currently [10 * lab]). <//> <q>Mines can now send away useless crystals they find to be turned into cookies!</q>
+		passive:grant (10 * lab) mineAdd
+		passive:grant (10 * mine) labAdd
+		cost:2000000000 cookies
+		req:(mine >= 40 and lab >= 40)
+		icon:icons[3,20]
+
+	[include buildingAddU %building="portal" %buildingname="Portal" %id="portalU1" %name="Ancient tablet" %val="1666" %q="A strange slab of peanut brittle, holding an ancient cookie recipe. Neat!" %cost="36666667" %req="1" %icon="[7,0]"]
+	[include buildingMultU %building="portal" %buildingname="Portal" %id="portalU2" %name="Insane oatling workers" %q="ARISE, MY MINIONS!" %cost="366666667" %req="1" %icon="[7,1]"]
+	[include buildingMultU %building="portal" %buildingname="Portal" %id="portalU3" %name="Soul bound" %q="So I just sign up and get more cookies? Sure, whatever!" %cost="3666666667" %req="25" %icon="[7,2]"]
+	[include buildingMultU %building="portal" %buildingname="Portal" %id="portalU4" %name="Sanity dance" %q="We can change if we want to. We can leave our brains behind." %cost="83333333333" %req="50" %icon="[7,13]"]
+	[include buildingMultU %building="portal" %buildingname="Portal" %id="portalU5" %name="Brane transplant" %q="This refers to the practice of merging higher dimensional universes, or 'branes', with our own, in order to facilitate transit (and harvesting of precious cookie dough)." %cost="36666666666667" %req="100" %icon="[7,14]"]
+
+	*shiporSyn1
+		name:Interdimensional transport
+		desc:Shipments gain <b>+40 base CpS</b> per portal (currently [40 * shipment]). Portals gain <b>+40 base CpS</b> per shipment (currently [40 * portal]). <//> <q>Fast track the elder gods of the Cookieverse straight to your front door!</q>
+		passive:grant (40 * portal) shipmentAdd
+		passive:grant (40 * shipment) portalAdd
+		cost:66666666666 cookies
+		req:(shipment >= 40 and portal >= 40)
+		icon:icons[5,20]
+
+	[include buildingAddU %building="machine" %buildingname="Time machine" %id="machineU1" %name="Flux capacitors" %val="19753" %q="Bake to the future." %cost="1408016000" %req="1" %icon="[8,0]"]
+	[include buildingMultU %building="machine" %buildingname="Time machine" %id="machineU2" %name="Time paradox resolver" %q="No more fooling around with your own grandmother!" %cost="19876543210" %req="1" %icon="[8,1]"]
+	[include buildingMultU %building="machine" %buildingname="Time machine" %id="machineU3" %name="Quantum conundrum" %q="There is only one constant, and that is universal uncertainty. Or is it?" %cost="198765432100" %req="25" %icon="[8,2]"]
+	[include buildingMultU %building="machine" %buildingname="Time machine" %id="machineU4" %name="Causality enforcer" %q="What happened, happened." %cost="1408016000000" %req="50" %icon="[8,13]"]
+	[include buildingMultU %building="machine" %buildingname="Time machine" %id="machineU5" %name="Yestermorrow comparators" %q="Fortnights into milleniums." %cost="140801600000000" %req="100" %icon="[8,14]"]
+
+	[include buildingAddU %building="condenser" %buildingname="Antimatter condenser" %id="condenserU1" %name="Sugar bosons" %val="199999" %q="Sweet firm bosons." %cost="50000000000" %req="1" %icon="[13,0]"]
+	[include buildingMultU %building="condenser" %buildingname="Antimatter condenser" %id="condenserU2" %name="String theory" %q="Reveals new insight about the true meaning of baking cookies (and, as a bonus, the structure of the universe)." %cost="500000000000" %req="1" %icon="[13,1]"]
+	[include buildingMultU %building="condenser" %buildingname="Antimatter condenser" %id="condenserU3" %name="Large macaron collider" %q="How singular!" %cost="5000000000000" %req="25" %icon="[13,2]"]
+	[include buildingMultU %building="condenser" %buildingname="Antimatter condenser" %id="condenserU4" %name="Big bang bake" %q="And that's how it all began." %cost="250000000000000" %req="50" %icon="[13,13]"]
+	[include buildingMultU %building="condenser" %buildingname="Antimatter condenser" %id="condenserU5" %name="Reverse cyclotrons" %q="These can uncollision particles and unspin atoms. For...uh...better flavor, and stuff." %cost="5000000000000000" %req="100" %icon="[13,14]"]
+
+	[include buildingAddU %building="prism" %buildingname="Prism" %id="prismU1" %name="Gem polish" %val="2500000" %q="Get rid of the grime and let more light in. Truly, truly outrageous." %cost="1250000000000" %req="1" %icon="[14,0]"]
+	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU2" %name="9th colour" %q="Delve into untouched optical depths where even the mantis shrimp hasn't set an eye!" %cost="12500000000000" %req="1" %icon="[14,1]"]
+	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU3" %name="Chocolate light" %q="Bask into its cocoalescence. (Warning: may cause various interesting albeit deadly skin conditions.)" %cost="125000000000000" %req="25" %icon="[14,2]"]
+	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU4" %name="Grainbow" %q="Remember the different grains using the handy Roy G. Biv mnemonic: R is for rice, O is for oats...uh, B for barley?..." %cost="6250000000000000" %req="50" %icon="[14,13]"]
+	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU5" %name="Pure cosmic light" %q="Your prisms now receive pristine, unadulterated photons from the other end of the universe." %cost="125000000000000000" %req="100" %icon="[14,14]"]
+
+
+	[include cookieU %id="1" %name="Oatmeal raisin cookies" %q="No raisin to hate these." %val="5" %cost="100000000" %req="1000000" %icon="[0,3]"]
+	[include cookieU %id="2" %name="Peanut butter cookies" %q="Get yourself some jam cookies!" %val="5" %cost="100000000" %req="1000000" %icon="[1,3]"]
+	[include cookieU %id="3" %name="Plain cookies" %q="Meh." %val="5" %cost="100000000" %req="1000000" %icon="[2,3]"]
+	[include cookieU %id="4" %name="Sugar cookies" %q="=Tasty, if a little unimaginative." %val="5" %cost="100000000" %req="1000000" %icon="[7,3]"]
+	[include cookieU %id="5" %name="Coconut cookies" %q="These are *way* flaky." %val="5" %cost="1000000000" %req="10000000" %icon="[3,3]"]
+	[include cookieU %id="6" %name="White chocolate cookies" %q="I know what you'll say. It's just cocoa butter! It's not real chocolate! Oh please." %val="5" %cost="1000000000" %req="10000000" %icon="[4,3]"]
+	[include cookieU %id="7" %name="Macadamia nut cookies" %q="They're macadamn delicious!" %val="5" %cost="1000000000" %req="10000000" %icon="[5,3]"]
+	[include cookieU %id="8" %name="Double-chip cookies" %q="DOUBLE THE CHIPS <//> DOUBLE THE TASTY <//> (double the calories)" %val="10" %cost="100000000000" %req="1000000000" %icon="[6,3]"]
+	[include cookieU %id="9" %name="White chocolate macadamia nut cookies" %q="Orteil's favourite" %val="10" %cost="100000000000" %req="1000000000" %icon="[8,3]"]
+	[include cookieU %id="10" %name="All-chocolate cookies" %q="CHOCOVERDOSE" %val="10" %cost="100000000000" %req="1000000000" %icon="[9,3]"]
+	[include cookieU %id="11" %name="Dark chocolate-coated cookies" %q="These absorb light so well you almost need to squint to see them." %val="15" %cost="1000000000000" %req="10000000000" %icon="[10,3]"]
+	[include cookieU %id="12" %name="White chocolate-coated cookies" %q="These dazzling cookies absolutely glisten with flavor." %val="15" %cost="1000000000000" %req="10000000000" %icon="[11,3]"]
+	[include cookieU %id="13" %name="Eclipse cookies" %q="Look to the cookie." %val="15" %cost="10000000000000" %req="100000000000" %icon="[0,4]"]
+	[include cookieU %id="14" %name="Zebra" %q="..." %val="15" %cost="10000000000000" %req="100000000000" %icon="[1,4]"]
+
+	*goldenU1
+		name:Lucky day
+		desc:Golden cookies appear <b>twice as often</b> and stay <b>twice as long</b>. <//> <q>Oh hey, a four-leaf penny!</q>
+		passive:multiply frequency of goldenCookie by 0.5
+		passive:multiply duration of goldenCookie by 2
+		cost:777777777 cookies
+		req: (clickedGoldenCookies >= 7)
+		icon:icons[27,6]
+
+	*goldenU2
+		name:Serendipity
+		desc:Golden cookies appear <b>twice as often</b> and stay <b>twice as long</b>. <//> <q>What joy! Seven horseshoes!</q>
+		passive:multiply frequency of goldenCookie by 0.5
+		passive:multiply duration of goldenCookie by 2
+		cost:77777777777 cookies
+		req: (clickedGoldenCookies >= 27)
+		icon:icons[27,6]
+
+	*goldenU3
+		name:Get lucky
+		desc:Golden cookies effects last <b>twice as long</b>. <//> <q>You've been up all night, haven't you?</q>
+		cost:77777777777777 cookies
+		req: (clickedGoldenCookies >= 77)
+		icon:icons[27,6]
+
+	[include milkU %id="1" %name="Kitten helpers" %q="meow may I help you" %val="0.2" %cost="9000000" %req="13" %icon="[18,0]"]
+	[include milkU %id="2" %name="Kitten workers" %q="meow meow meow meow" %val="0.4" %cost="9000000000" %req="25" %icon="[18,1]"]
+	[include milkU %id="3" %name="Kitten engineers" %q="meow meow meow meow, sir" %val="0.8" %cost="90000000000000" %req="50" %icon="[18,2]"]
+	[include milkU %id="4" %name="Kitten overseers" %q="my purpose is to serve you, sir" %val="0.8" %cost="90000000000000000" %req="75" %icon="[18,13]"]
+	[include milkU %id="5" %name="Kitten managers" %q="that's not gonna paws any problem, sir" %val="0.8" %cost="900000000000000000000" %req="100" %icon="[18,14]"]
+
+Achievements
+    *TEMPLATE
+        on click:anim glow
+		passive:grant 1 totalAchievements
+
+	[include cookieAchievement %id="cookies1" %name="Wake and bake" %val="1" %req="1" %icon="[0,5]"]
+	[include cookieAchievement %id="cookies2" %name="Starting fresh" %val="100" %req="100" %icon="[1,5]"]
+	[include cookieAchievement %id="cookies3" %name="Making some dough" %val="1,000" %req="1000" %icon="[2,5]"]
+	[include cookieAchievement %id="cookies4" %name="So baked right now" %val="10,000" %req="10000" %icon="[3,5]"]
+	[include cookieAchievement %id="cookies5" %name="Fledgling bakery" %val="100,000" %req="100000" %icon="[4,5]"]
+	[include cookieAchievement %id="cookies6" %name="Affluent bakery" %val="1 million" %req="1000000" %icon="[4,5]"]
+	[include cookieAchievement %id="cookies7" %name="Monumental bakery" %val="10 million" %req="10000000" %icon="[5,5]"]
+	[include cookieAchievement %id="cookies8" %name="World-famous bakery" %val="100 million" %req="100000000" %icon="[5,5]"]
+	[include cookieAchievement %id="cookies9" %name="Lifetime Supply" %val="1 billion" %req="1000000000" %icon="[6,5]"]
+	[include cookieAchievement %id="cookies10" %name="Cosmic bakery" %val="10 billion" %req="10000000000" %icon="[6,5]"]
+	[include cookieAchievement %id="cookies11" %name="Galactic bakery" %val="100 billion" %req="100000000000" %icon="[7,5]"]
+	[include cookieAchievement %id="cookies12" %name="Universal bakery" %val="1 trillion" %req="1000000000000" %icon="[7,5]"]
+	[include cookieAchievement %id="cookies13" %name="Timeless bakery" %val="10 trillion" %req="10000000000000" %icon="[8,5]"]
+	[include cookieAchievement %id="cookies14" %name="Interdimensional bakery" %val="100 trillion" %req="100000000000000" %icon="[8,5]"]
+	[include cookieAchievement %id="cookies15" %name="You can stop now" %val="1 quadrillion" %req="1000000000000000" %icon="[9,5]"]
+	[include cookieAchievement %id="cookies16" %name="The point of no return" %val="10 quadrillion" %req="10000000000000000" %icon="[9,5]"]
+	[include cookieAchievement %id="cookies17" %name="A world filled with cookies" %val="100 quadrillion" %req="100000000000000000" %icon="[10,5]"]
+	[include cookieAchievement %id="cookies18" %name="Overdose" %val="1 quintillion" %req="1000000000000000000" %icon="[10,5]"]
+	[include cookieAchievement %id="cookies19" %name="Infinite bakery" %val="10 quintillion" %req="10000000000000000000" %icon="[11,5]"]
+	[include cookieAchievement %id="cookies20" %name="Immortal bakery" %val="100 quintillion" %req="100000000000000000000" %icon="[11,5]"]
+	[include cookieAchievement %id="cookies21" %name="Cookies all the way down" %val="1 sextillion" %req="1000000000000000000000" %icon="[11,5]"]
+	[include cookieAchievement %id="cookies22" %name="How?" %val="10 sextillion" %req="10000000000000000000000" %icon="[18,5]"]
+
+	[include cookiePSAchievement %id="cookiesps1" %name="Casual baking" %val="1" %req="1" %icon="[0,5]"]
+	[include cookiePSAchievement %id="cookiesps2" %name="Homegrown supply" %val="10" %req="10" %icon="[1,5]"]
+	[include cookiePSAchievement %id="cookiesps3" %name="Steady tasty stream" %val="100" %req="100" %icon="[2,5]"]
+	[include cookiePSAchievement %id="cookiesps4" %name="Mass producer" %val="1,000" %req="1000" %icon="[3,5]"]
+	[include cookiePSAchievement %id="cookiesps5" %name="Cookie monster" %val="10,000" %req="10000" %icon="[4,5]"]
+	[include cookiePSAchievement %id="cookiesps6" %name="Cookie baron" %val="100,000" %req="100000" %icon="[4,5]"]
+	[include cookiePSAchievement %id="cookiesps7" %name="Global supplier" %val="1 million" %req="1000000" %icon="[5,5]"]
+	[include cookiePSAchievement %id="cookiesps8" %name="Baked to the brim" %val="10 million" %req="10000000" %icon="[6,5]"]
+	[include cookiePSAchievement %id="cookiesps9" %name="Cookie vortex" %val="100 million" %req="100000000" %icon="[7,5]"]
+	[include cookiePSAchievement %id="cookiesps10" %name="Cookie pulsar" %val="1 billion" %req="1000000000" %icon="[8,5]"]
+	[include cookiePSAchievement %id="cookiesps11" %name="Cookie quasar" %val="10 billion" %req="10000000000" %icon="[9,5]"]
+	[include cookiePSAchievement %id="cookiesps12" %name="World hunger solved" %val="100 billion" %req="100000000000" %icon="[10,5]"]
+	[include cookiePSAchievement %id="cookiesps13" %name="Hardcore baking" %val="1 trillion" %req="1000000000000" %icon="[18,5]"]
+	[include cookiePSAchievement %id="cookiesps14" %name="The All Consumer" %val="10 trillion" %req="10000000000000" %icon="[18,5]"]
+	[include cookiePSAchievement %id="cookiesps15" %name="Let's never bake again" %val="100 trillion" %req="100000000000000" %icon="[11,5]"]
+	[include cookiePSAchievement %id="cookiesps16" %name="Free cookies for everyone" %val="1 quadrillion" %req="1000000000000000" %icon="[11,5]"]
+
+
+	[include clickAchievement %id="clickA1" %name="Clicktastic" %val="1,000" %req="1000" %icon="[11,0]"]
+	[include clickAchievement %id="clickA2" %name="Clickathlon" %val="100,000" %req="100000" %icon="[11,0]"]
+	[include clickAchievement %id="clickA3" %name="Clickolympics" %val="10 million" %req="10000000" %icon="[11,1]"]
+	[include clickAchievement %id="clickA4" %name="Clickampion" %val="1 billion" %req="1000000000" %icon="[11,2]"]
+	[include clickAchievement %id="clickA5" %name="Clickorama" %val="100 billion" %req="100000000000" %icon="[11,13]"]
+	[include clickAchievement %id="clickA6" %name="Clickasmic" %val="10 trillion" %req="10000000000000" %icon="[11,13]"]
+	[include clickAchievement %id="clickA7" %name="Clickageddon" %val="1 quadrillion" %req="1000000000000000" %icon="[11,14]"]
+	[include clickAchievement %id="clickA8" %name="Clickopalypse" %val="100 quadrillion" %req="100000000000000000" %icon="[11,15]"]
+	[include clickAchievement %id="clickA9" %name="Clicknarok" %val="10 quintillion" %req="10000000000000000000" %icon="[11,15]"]
+
+
+	[include buildAchievement %id="cursorA1" %name="Click" %val="1" %building="cursor" %icon="[0,0]"]
+	[include buildAchievement %id="cursorA2" %name="Double-click" %val="2" %building="cursor" %icon="[0,6]"]
+	[include buildAchievement %id="cursorA3" %name="Mouse wheel" %val="50" %building="cursor" %icon="[1,6]"]
+	[include buildAchievement %id="cursorA4" %name="Of Mice and Men" %val="100" %building="cursor" %icon="[12,1]"]
+	[include buildAchievement %id="cursorA5" %name="The Digital" %val="200" %building="cursor" %icon="[12,2]"]
+	[include buildAchievement %id="cursorA6" %name="Extreme polydactyly" %val="300" %building="cursor" %icon="[0,6]"]
+	[include buildAchievement %id="cursorA7" %name="Dr. T" %val="400" %building="cursor" %icon="[0,6]"]
+
+	[include buildAchievement %id="grandmaA1" %name="Grandma's cookies" %val="1" %building="grandma" %icon="[1,0]"]
+	[include buildAchievement %id="grandmaA2" %name="Sloppy kisses" %val="50" %building="grandma" %icon="[1,1]"]
+	[include buildAchievement %id="grandmaA3" %name="Retirement home" %val="100" %building="grandma" %icon="[1,2]"]
+	[include buildAchievement %id="grandmaA4" %name="Friend of the ancients" %val="150" %building="grandma" %icon="[1,13]"]
+	[include buildAchievement %id="grandmaA5" %name="Ruler of the ancients" %val="200" %building="grandma" %icon="[1,14]"]
+	[include buildAchievement %id="grandmaA6" %name="The old never bothered me anyway" %val="250" %building="grandma" %icon="[1,15]"]
+
+	*elderA
+		name:Elder
+		desc:Own at least <b>7</b> grandma types.
+		req:(have elder7)
+		icon:icons[10,9]
+
+	[include buildAchievement %id="farmA1" %name="My first farm" %val="1" %building="farm" %icon="[2,0]"]
+	[include buildAchievement %id="farmA2" %name="Reap what you sow" %val="50" %building="farm" %icon="[2,1]"]
+	[include buildAchievement %id="farmA3" %name="Farm ill" %val="100" %building="farm" %icon="[2,2]"]
+	[include buildAchievement %id="farmA4" %name="Perfected agriculture" %val="150" %building="farm" %icon="[2,13]"]
+	[include buildAchievement %id="farmA5" %name="Homegrown" %val="200" %building="farm" %icon="[2,14]"]
+
+	[include buildAchievement %id="factoryA1" %name="Production Chain" %val="1" %building="factory" %icon="[4,0]"]
+	[include buildAchievement %id="factoryA2" %name="Industrial revolution" %val="50" %building="factory" %icon="[4,1]"]
+	[include buildAchievement %id="factoryA3" %name="Global warming" %val="100" %building="factory" %icon="[4,2]"]
+	[include buildAchievement %id="factoryA4" %name="Ultimate automation" %val="150" %building="factory" %icon="[4,13]"]
+	[include buildAchievement %id="factoryA5" %name="Technocracy" %val="200" %building="factory" %icon="[4,14]"]
+
+	[include buildAchievement %id="mineA1" %name="You know the drill" %val="1" %building="mine" %icon="[3,0]"]
+	[include buildAchievement %id="mineA2" %name="Excavation site" %val="50" %building="mine" %icon="[3,1]"]
+	[include buildAchievement %id="mineA3" %name="Hollow the planet" %val="100" %building="mine" %icon="[3,2]"]
+	[include buildAchievement %id="mineA4" %name="Can you dig it" %val="150" %building="mine" %icon="[3,13]"]
+	[include buildAchievement %id="mineA5" %name="The center of the Earth" %val="200" %building="mine" %icon="[3,14]"]
+
+	[include buildAchievement %id="shipmentA1" %name="Expedition" %val="1" %building="shipment" %icon="[5,0]"]
+	[include buildAchievement %id="shipmentA2" %name="Galactic highway" %val="50" %building="shipment" %icon="[5,1]"]
+	[include buildAchievement %id="shipmentA3" %name="Far far away" %val="100" %building="shipment" %icon="[5,2]"]
+	[include buildAchievement %id="shipmentA4" %name="Type II civilization" %val="150" %building="shipment" %icon="[5,13]"]
+	[include buildAchievement %id="shipmentA5" %name="We come in peace" %val="200" %building="shipment" %icon="[5,14]"]
+
+
+	[include buildAchievement %id="labA1" %name="Transmutation" %val="1" %building="lab" %icon="[6,0]"]
+	[include buildAchievement %id="labA2" %name="Transmorgification" %val="50" %building="lab" %icon="[6,1]"]
+	[include buildAchievement %id="labA3" %name="Gold member" %val="100" %building="lab" %icon="[6,2]"]
+	[include buildAchievement %id="labA4" %name="Gild wars" %val="150" %building="lab" %icon="[6,13]"]
+	[include buildAchievement %id="labA5" %name="The secrets of the universe" %val="200" %building="lab" %icon="[6,14]"]
+
+	[include buildAchievement %id="portalA1" %name="A whole new world" %val="1" %building="portal" %icon="[7,0]"]
+	[include buildAchievement %id="portalA2" %name="Now you're thinking" %val="50" %building="portal" %icon="[7,1]"]
+	[include buildAchievement %id="portalA3" %name="Dimensional shift" %val="100" %building="portal" %icon="[7,2]"]
+	[include buildAchievement %id="portalA4" %name="Brain-split" %val="150" %building="portal" %icon="[7,13]"]
+	[include buildAchievement %id="portalA5" %name="Realm of the Mad God" %val="200" %building="portal" %icon="[7,14]"]
+
+	[include buildAchievement %id="machineA1" %name="Time warp" %val="1" %building="machine" %icon="[8,0]"]
+	[include buildAchievement %id="machineA2" %name="Alternate timeline" %val="50" %building="machine" %icon="[8,1]"]
+	[include buildAchievement %id="machineA3" %name="Rewriting history" %val="100" %building="machine" %icon="[8,2]"]
+	[include buildAchievement %id="machineA4" %name="Time duke" %val="150" %building="machine" %icon="[8,13]"]
+	[include buildAchievement %id="machineA5" %name="Forever and ever" %val="200" %building="machine" %icon="[8,14]"]
+
+	[include buildAchievement %id="condenserA1" %name="Antibatter" %val="1" %building="condenser" %icon="[13,0]"]
+	[include buildAchievement %id="condenserA2" %name="Quirky quarks" %val="50" %building="condenser" %icon="[13,1]"]
+	[include buildAchievement %id="condenserA3" %name="It does matter!" %val="100" %building="condenser" %icon="[13,2]"]
+	[include buildAchievement %id="condenserA4" %name="Molecular maestro" %val="150" %building="condenser" %icon="[13,13]"]
+	[include buildAchievement %id="condenserA5" %name="Walk the planck" %val="200" %building="condenser" %icon="[13,14]"]
+
+
+	[include buildAchievement %id="prismA1" %name="Lone photon" %val="1" %building="prism" %icon="[14,0]"]
+	[include buildAchievement %id="prismA2" %name="Dazzling glimmer" %val="50" %building="prism" %icon="[14,1]"]
+	[include buildAchievement %id="prismA3" %name="Blinding flash" %val="100" %building="prism" %icon="[14,2]"]
+	[include buildAchievement %id="prismA4" %name="Unending glow" %val="150" %building="prism" %icon="[14,13]"]
+	[include buildAchievement %id="prismA5" %name="Rise and shine" %val="200" %building="prism" %icon="[14,14]"]
+
+
+	[include buildingA %id="buildA1" %name="Builder" %val="100" %icon="[2,6]"]
+	[include buildingA %id="buildA2" %name="Contractor" %val="400" %icon="[3,6]"]
+	[include buildingA %id="buildA3" %name="Engineer" %val="800" %icon="[4,6]"]
+	[include buildingA %id="buildA4" %name="Architect" %val="1600" %icon="[4,6]"]
+
+	*buildA5
+		name:Lord of Constructs
+		desc:Own <b>3200</b> buildings. <//> <q>He saw the vast plains stretching ahead of him, and he said: let there be civilization.</q>
+		req:3200 totalBuildings
+		icon:icons[5,6]
+
+	[include upgradeA %id="upgradeA1" %name="Enhancer" %val="20" %icon="[9,0]"]
+	[include upgradeA %id="upgradeA2" %name="Augmenter" %val="50" %icon="[9,1]"]
+	[include upgradeA %id="upgradeA3" %name="Upgrader" %val="100" %icon="[9,2]"]
+	[include upgradeA %id="upgradeA4" %name="Lord of Progress" %val="150" %icon="[9,13]"]
+
+	*everybuildA1
+		name:One with everything
+		desc:Have <b>at least 1</b> of every building.
+		req:(have cursor and have grandma and have farm and have factory and have mine and have shipment and have lab and have portal and have machine and have condenser and have prism)
+		icon:icons[2,6]
+
+	*mathematicianA
+		name:Mathematician
+		desc: Have at least <b>1 of the most expensive object, 2 of the second-most expensive, 4 of the next</b> and so on (capped at 128).
+		req:(have prism and condenser >=2 and machine >= 4 and portal >= 8 and lab >= 16 and shipment >= 32 and mine >= 64 and factory >= 128 and farm >= 128 and grandma >= 128 and cursor >= 128)
+		icon:icons[6,6]
+
+	*base10A
+		name:Base 10
+		desc: Have at least <b>10 of the most expensive object, 20 of the second-most expensive, 30 of the next</b> and so on.
+		req:(prism >= 10 and condenser >= 20 and machine >= 30 and portal >= 40 and lab >= 50 and shipment >= 60 and mine >= 70 and factory >= 80 and farm >= 90 and grandma >= 100 and cursor >= 110)
+		icon:icons[7,6]
+
+	*centennialA
+		name:Centennial
+		desc: Have at least <b>100 of everything</b>.
+		req:(prism >= 100 and condenser >= 100 and machine >= 100 and portal >= 100 and lab >= 100 and shipment >= 100 and mine >= 100 and factory >= 100 and farm >= 100 and grandma >= 100 and cursor >= 100)
+		icon:icons[8,6]
+
+	*goldenCookieA1
+		name:Golden cookie
+		desc:Click a <b>golden cookie</b>.
+		req:1 clickedGoldenCookie
+		icon:icons[10,14]
+
+	[include goldenCookieA %id="goldenCookieA2" %name="Lucky cookie" %val="7"]
+	[include goldenCookieA %id="goldenCookieA3" %name="A stroke of luck" %val="27"]
+
+	*goldenCookieA4
+		name:Fortune
+		desc:Click <b>77 golden cookies</b>. <//> <q>You should really go to bed.</q>
+		req:77 clickedGoldenCookie
+		icon:icons[10,14]
+
+
+	[include goldenCookieA %id="goldenCookieA5" %name="Leprechaun" %val="777"]
+
+	*neverclick
+		name:Neverclick
+		desc:Make <b>1 million</b> cookies by only having clicked <b>10 times</b>.
+		req:(cookies >= 1000000 and clickedCookies <= 10)
+		icon:icons[12,0]
+
