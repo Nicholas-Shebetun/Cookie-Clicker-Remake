@@ -3,8 +3,8 @@ Let's make a game!
 	by: Hoodie (og game by Orteil)
 	desc: Testing igm features by recreating a classic
 	created: 10/09/2026
-	updated: 12/09/2026
-	version: 1047
+	updated: 18/10/2026
+	version: 1600
 
 Settings
 	tiling background:../cookieclicker/img/bgBlue.jpg
@@ -17,6 +17,7 @@ Settings
 	spritesheet:cookies, 24 by 24, ../cookieclicker/img/smallCookies.png
 	stylesheet:stuff/bigBlue.css
 
+	no particles
 	no bulk particles
 
 
@@ -47,12 +48,14 @@ Includes
 		
 		yield $yield cookies
 		yield $yield clickedCookies
+		yield $yield totalCookies
 
 
 	*include Lucky
 		$gain = (min(cookies/10 + 13, cookies:ps*1200 + 13))
 		toast <b>Lucky!</b> <//> +<b>[$gain] cookies</b>.
 		yield $gain cookies
+		yield $gain totalCookies
 
 	*include Frenzy
 		$val = 77
@@ -159,11 +162,14 @@ Includes
 	*include building %id %name %desc %icon %cost %yield %req
 		*[%id]
 			name:[%name]
-			desc:[%desc] <//> Each [%name] produces <b>[(([%yield] + [%id]Add) * [%id]Mult * globalMult)].[(([%yield] + [%id]Add) * [%id]Mult * globalMult * 10 % 10)]</b> cookies per second. <//> [this] [%name]s producing <b>[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult)].[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult * 10 % 10)]</b> cookies per second.
+			desc:[%desc] <//> Each [%name] produces <b>[(([%yield] + [%id]Add) * [%id]Mult * globalMult / 100)].[(([%yield] + [%id]Add) * [%id]Mult * globalMult / 100 * 10 % 10)]</b> cookies per second. <//> [this] [%name]s producing <b>[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult / 100)].[(([%yield] + [%id]Add) * this * [%id]Mult * globalMult / 100 * 10 % 10)]</b> cookies per second.
 			icon:buildings[%icon]
 			cost:[%cost] cookies
-			on tick:yield (([%yield] + [%id]Add) * [%id]Mult * globalMult) cookies
-			req:[%req] cookies:earned
+			on tick:
+				yield (([%yield] + [%id]Add) * [%id]Mult * globalMult / 100) cookies
+				yield (([%yield] + [%id]Add) * [%id]Mult * globalMult / 100) totalCookies
+			end
+			req:[%req] totalCookies
 
 	//Creates shadows for the buildings (see buildings section)
 	*include buildShadow %id %id2 %icon %cost %startwith
@@ -173,10 +179,11 @@ Includes
 			cost:[%cost] cookies
 			start with:[%startwith]
 			hidden when 0
-			no text
+			text:???
 			no tooltip
+			no buy
 			on tick: 
-				if (cookies:earned >= [%cost] / 10) 
+				if (totalCookies >= [%cost] / 10) 
 					lose 1 [%id]Shadow
 					//[%id2] is the building two below the current one
 					//will appear when the building is first bought
@@ -192,13 +199,14 @@ Includes
 		*[%building]Mult
 			start with:1
 			hidden
+			tag:multiplier
 
 
 	*include cookieAchievement %id %name %val %req %icon
 		*[%id]
 			name:[%name]
 			desc:Bake <b>[%val]</b> cookies.
-			req:[%req] cookies:earned
+			req:[%req] totalCookies
 			icon:icons[%icon]
 
 	*include cookiePSAchievement %id %name %val %req %icon
@@ -258,7 +266,7 @@ Includes
 			name:[%name] mouse
 			desc:Clicking gains <b>+1% of your CpS.</b> <//> <q>[%q]</q>
 			cost:[%cost] cookies
-			req:[%req]
+			req:[%req] clickedCookies
 			icon:icons[%icon]
 
 	*include buildingAddU %building %buildingname %id %name %val %q %cost %req %icon
@@ -296,7 +304,7 @@ Includes
 			desc:Cookie production multiplier <b>+[%val]%</b>. <//> <q>[%q]</q>
 			on earn:yield ([%val] * 0.01) cookieMult
 			cost:[%cost] cookies
-			req:[%req] cookies:earned
+			req:[%req] totalCookies
 			icon:icons[%icon]
 
 	*include milkU %id %name %q %val %cost %req %icon
@@ -320,6 +328,10 @@ CSS
 	.bigButton > .thing-icon
 	{
 		background-size:contain
+	}
+	.buildingIconSize {
+		height: 64px;
+		width: 64px;
 	}
 	.wobble 
 	{
@@ -349,9 +361,12 @@ CSS
 		height: 128px;
 		width: 128px;
 	}
-	#particles .particle:nth-child(even) {
+	#particles #particle-0 {
   		display: none;
 		opacity: 0;
+		width: 0px;
+		height: 0px;
+		will-change: transform;
 	}
 
 
@@ -385,6 +400,7 @@ Buttons
 		end
         icon:../cookieclicker/img/perfectCookie.png
         no text
+		no tooltip
         class:bigButton hasFlares
         icon class:shadowed
         tooltip origin:bottom
@@ -398,25 +414,43 @@ Resources
         class:noBackground cookieTitle
         show earned
 
+	*totalCookie|totalCookies
+		name:Cookies earned this run
+		class:noBackground
+
+	*allTimeCookie|allTimeCookies
+		name:All-time cookies
+		class:noBackground
+		is always:(cookies:earned * have heavenlyChips)
+		hidden when 0
+		tag:prestige
+
 	*clickedCookie|clickedCookies
-		name:Clicked
-		always hidden
+		name:Hand-made cookies
+		class:noBackground
+		show earned
 
 	*clickedGoldenCookie|clickedGoldenCookies
 		always hidden
 
 	*globalMult
 		class:noBackground
-		show earned
-		is always:(cookieMult * milkMult)
+		is always:((cookieMult + have heavenlyChips * heavenlyChips / 100) * milkMult)
 
 	*cookieMult
 		start with:1
 		hidden
+		tag:multiplier
+
+	*heavenlyChips
+		hidden when 0
+		class:noBackground
+		tag:prestige
 
 	*milkMult
 		hidden
-		is always:(1 + have milkU1 * 0.002 * totalAchievements) * (1 + have milkU2 * 0.004 * totalAchievements) * (1 + have milkU3 * 0.008 * totalAchievements) * (1 + have milkU4 * 0.008 * totalAchievements) * (1 + have milkU5 * 0.008 * totalAchievements)
+		class:noBackground
+		is always:(1 + have milkU1 * 0.002 * totalAchievements) * (1 + have milkU2 * 0.004 * totalAchievements) * (1 + have milkU3 * 0.008 * totalAchievements) * (1 + have milkU4 * 0.008 * totalAchievements) * (1 + have milkU5 * 0.008 * totalAchievements) * 100
 
 
 	[include addMult %building="cursor"]
@@ -432,16 +466,18 @@ Resources
 	[include addMult %building="prism"]
 
 	*totalBuildings
-		name:Buidlings owned
+		name:Buildings owned
 		class:noBackground
 		is always:(cursor+grandma+farm+factory+mine+shipment+lab+portal+machine+condenser+prism)
 
 	*totalUpgrades
 		name:Upgrades owned
 		class:noBackground
+		hidden
 
 	*totalAchievements
 		hidden
+		tag:prestige
 
 
 	//All of the golden cookie timers
@@ -473,6 +509,7 @@ Resources
 		hidden
 	*research
 		name: Research
+		class:noBackground
 		hidden when 0
 
 
@@ -481,8 +518,8 @@ Shinies
 		on click:log Woop
 		duration: 13
 		movement:onThing:bigCookie fade growShrink pulse:0.05 wiggle:0.01
-        frequency:420
-        frequency variation:120
+        frequency:10
+        frequency variation:0
 		icon:../cookieclicker/img/goldCookie.png
 		class:bigButton
 		on click:
@@ -511,9 +548,10 @@ Shinies
 				end
 			end
 			if ($effect < 100 and $effect > 96)
-				if (cookies:earned > 100000)
+				if (totalCookies > 100000)
 					toast <b>Cookie Chain!</b> <//> Got 777 cookies!
 					yield 777 cookies
+					yield 777 totalCookies
 					spawn cookieChain
 				else
 					[i:ClickFrenzy]
@@ -546,6 +584,7 @@ Shinies
 		on click:
 			$yield = 777 * pow(10, chainmult) + 7 * pow(10, chainmult - 1)
 			yield $yield cookies
+			yield $yield totalCookies
 			if (($yield * 10 + 7) < cookies:ps * 21600 and ($yield * 10 + 7) < cookies / 2)
 				toast <b>Cookie Chain!</b> <//> Got [$yield] cookies!
 				yield 1 chainmult
@@ -568,6 +607,7 @@ Shinies
 			end
 			$yield = random(cookies:ps * 60, cookies:ps * 420)
 			yield $yield cookies
+			yield $yield totalCookies
 			toast <b>Lucky!</b> <//> +<b>[$yield] cookies</b>.
 		end
 
@@ -575,11 +615,13 @@ Shinies
 Buildings
 	*TEMPLATE
 		on click:anim glow
+		icon class:buildingIconSize
 
 	*checker
 		name:Checker
 		desc:You shouldn't be seeing this.
 		start with:1
+		tag:multiplier
 		always hidden
 		on tick:
 			[include activateSpecial %booster="frenzy" %boost="7"]
@@ -606,10 +648,13 @@ Buildings
 
 	*cursor|cursors
 		name:Cursor|Cursor
-		desc:Autoclicks once every 10 seconds. <//> each cursor produces <b>[((0.1 + cursorAdd) * cursorMult * globalMult)].[((0.1 + cursorAdd) * cursorMult * globalMult * 10 % 10)]</b> cookies per second <//> [this] cursors producing <b>[((0.1 + cursorAdd) * this * cursorMult * globalMult)].[((0.1 + cursorAdd) * this * cursorMult * globalMult * 10 % 10)]</b> per second
+		desc:Autoclicks once every 10 seconds. <//> each cursor produces <b>[((0.1 + cursorAdd) * cursorMult * globalMult / 100)].[((0.1 + cursorAdd) * cursorMult * globalMult / 100 * 10 % 10)]</b> cookies per second <//> [this] cursors producing <b>[((0.1 + cursorAdd) * this * cursorMult * globalMult / 100)].[((0.1 + cursorAdd) * this * cursorMult * globalMult / 100 * 10 % 10)]</b> per second
 		icon:buildings[0,0]
 		cost:10 cookies
-		on tick:yield ((0.1 + cursorAdd) * cursorMult * globalMult) cookies
+		on tick:
+			yield ((0.1 + cursorAdd) * cursorMult * globalMult / 100) cookies
+			yield ((0.1 + cursorAdd) * cursorMult * globalMult / 100) totalCookies
+		end
 		unlocked
 
 	[include building %id="grandma" %name="Grandma" %desc="A nice grandma to bake more cookies." %icon="[0,1]" %cost="100" %yield="1" %req="100"]
@@ -631,7 +676,7 @@ Buildings
 	[include buildShadow %id="lab" %id2="machine" %icon="[1,10]" %cost="5000000" %startwith="0"]
 
 	[include building %id="portal" %name="Portal" %desc="Opens a door to the Cookieverse." %icon="[0,11]" %cost="3666667" %yield="6666" %req="3666667"]
-	[include buildShadow %id="portal" %id2="condenser" %icon="[1,11]" %cost="3666667" %startwith="0"]
+	[include buildShadow %id="portal" %id2="condenser" %icon="[1,11]" %cost="36666667" %startwith="0"]
 
 	[include building %id="machine" %name="Time Machine" %desc="Brings in cookies from the past, before they were even eaten." %icon="[0,12]" %cost="140801600" %yield="88888" %req="140801600"]
 	[include buildShadow %id="machine" %id2="prism" %icon="[1,12]" %cost="1408016000" %startwith="0"]
@@ -646,6 +691,23 @@ Upgrades
 	*TEMPLATE
 		on click:anim glow
 		passive:grant 1 totalUpgrades
+
+	*ascension
+		name:Ascension
+		desc:Leave this world behind, start anew, and gain heavenly chips based on your cookies made this run (currently [totalCookies / 1000000000000])!. Heavenly chips boost CpS by 1% each and can buy powerful new upgrades for you to use.
+		on earn:
+			toast So long, cookies!
+			yield floor(totalCookies / 1000000000000) heavenlyChips
+			lose notTag:prestige
+			yield 1 tag:multiplier
+			yield 2 chainmult
+			yield 1 grandmaShadow
+			yield 1 farmShadow
+			lose ascension
+		end
+		cost:10 cookies
+		req:1000000000000 totalCookies
+		icon:icons[21,6]
 
 	*cursorU1
 		name:Reinforced index finger
@@ -681,15 +743,15 @@ Upgrades
 	[include fingers %id="cursorU11" %name="Septillion" %val="1600" %q="cursory flavor text" %cost="5000000000000000" %req="280" %icon="[12,14]"]
 	[include fingers %id="cursorU12" %name="Octillion" %val="3200" %q="Turns out you <b>can</b> quite put your finger on it." %cost="50000000000000000" %req="320" %icon="[12,15]"]
 
-	[include clickU %id="1" %name="Plastic" %q="Slightly squeaky." %cost="50000" %req="have clickA1" %icon="[11,0]"]
-	[include clickU %id="2" %name="Iron" %q="Click like it's 1,349!" %cost="5000000" %req="have clickA2" %icon="[11,0]"]
-	[include clickU %id="3" %name="Titanium" %q="Heavy, but powerful." %cost="500000000" %req="have clickA3" %icon="[11,1]"]
-	[include clickU %id="4" %name="Tungsten" %q="Clicking so hot, it makes cookies!" %cost="50000000000" %req="have clickA4" %icon="[11,2]"]
-	[include clickU %id="5" %name="Adamantium" %q="You could cut diamond with these." %cost="5000000000000" %req="have clickA5" %icon="[11,13]"]
-	[include clickU %id="6" %name="Renderite" %q="It's out of this world!" %cost="500000000000000" %req="have clickA6" %icon="[11,13]"]
-	[include clickU %id="7" %name="Unobtanium" %q="These nice mice should suffice." %cost="50000000000000000" %req="have clickA7" %icon="[11,14]"]
-	[include clickU %id="8" %name="Eludium" %q="I rodent do that if I were you." %cost="5000000000000000000" %req="have clickA8" %icon="[11,15]"]
-	[include clickU %id="9" %name="Wishallow" %q="Clicking is fine and dandy, but don't smash your mouse over it. Get your game on. Go play." %cost="500000000000000000000" %req="have clickA9" %icon="[11,15]"]
+	[include clickU %id="1" %name="Plastic" %q="Slightly squeaky." %cost="50000" %req="1000" %icon="[11,0]"]
+	[include clickU %id="2" %name="Iron" %q="Click like it's 1,349!" %cost="5000000" %req="100000" %icon="[11,0]"]
+	[include clickU %id="3" %name="Titanium" %q="Heavy, but powerful." %cost="500000000" %req="10000000" %icon="[11,1]"]
+	[include clickU %id="4" %name="Tungsten" %q="Clicking so hot, it makes cookies!" %cost="50000000000" %req="1000000000" %icon="[11,2]"]
+	[include clickU %id="5" %name="Adamantium" %q="You could cut diamond with these." %cost="5000000000000" %req="100000000000" %icon="[11,13]"]
+	[include clickU %id="6" %name="Renderite" %q="It's out of this world!" %cost="500000000000000" %req="10000000000000" %icon="[11,13]"]
+	[include clickU %id="7" %name="Unobtanium" %q="These nice mice should suffice." %cost="50000000000000000" %req="1000000000000000" %icon="[11,14]"]
+	[include clickU %id="8" %name="Eludium" %q="I rodent do that if I were you." %cost="5000000000000000000" %req="100000000000000000" %icon="[11,15]"]
+	[include clickU %id="9" %name="Wishallow" %q="Clicking is fine and dandy, but don't smash your mouse over it. Get your game on. Go play." %cost="500000000000000000000" %req="10000000000000000000" %icon="[11,15]"]
 
 
 	[include buildingAddU %building="grandma" %buildingname="Grandmas" %id="grandmaU1" %name="Forwards from grandma" %val="0.3" %q="RE:RE:thought you'd get a kick out of this ;))" %cost="1000" %req="1" %icon="[1,0]"]
@@ -800,22 +862,6 @@ Upgrades
 	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU4" %name="Grainbow" %q="Remember the different grains using the handy Roy G. Biv mnemonic: R is for rice, O is for oats...uh, B for barley?..." %cost="6250000000000000" %req="50" %icon="[14,13]"]
 	[include buildingMultU %building="prism" %buildingname="Prism" %id="prismU5" %name="Pure cosmic light" %q="Your prisms now receive pristine, unadulterated photons from the other end of the universe." %cost="125000000000000000" %req="100" %icon="[14,14]"]
 
-
-	[include cookieU %id="1" %name="Oatmeal raisin cookies" %q="No raisin to hate these." %val="5" %cost="100000000" %req="1000000" %icon="[0,3]"]
-	[include cookieU %id="2" %name="Peanut butter cookies" %q="Get yourself some jam cookies!" %val="5" %cost="100000000" %req="1000000" %icon="[1,3]"]
-	[include cookieU %id="3" %name="Plain cookies" %q="Meh." %val="5" %cost="100000000" %req="1000000" %icon="[2,3]"]
-	[include cookieU %id="4" %name="Sugar cookies" %q="=Tasty, if a little unimaginative." %val="5" %cost="100000000" %req="1000000" %icon="[7,3]"]
-	[include cookieU %id="5" %name="Coconut cookies" %q="These are *way* flaky." %val="5" %cost="1000000000" %req="10000000" %icon="[3,3]"]
-	[include cookieU %id="6" %name="White chocolate cookies" %q="I know what you'll say. It's just cocoa butter! It's not real chocolate! Oh please." %val="5" %cost="1000000000" %req="10000000" %icon="[4,3]"]
-	[include cookieU %id="7" %name="Macadamia nut cookies" %q="They're macadamn delicious!" %val="5" %cost="1000000000" %req="10000000" %icon="[5,3]"]
-	[include cookieU %id="8" %name="Double-chip cookies" %q="DOUBLE THE CHIPS <//> DOUBLE THE TASTY <//> (double the calories)" %val="10" %cost="100000000000" %req="1000000000" %icon="[6,3]"]
-	[include cookieU %id="9" %name="White chocolate macadamia nut cookies" %q="Orteil's favourite" %val="10" %cost="100000000000" %req="1000000000" %icon="[8,3]"]
-	[include cookieU %id="10" %name="All-chocolate cookies" %q="CHOCOVERDOSE" %val="10" %cost="100000000000" %req="1000000000" %icon="[9,3]"]
-	[include cookieU %id="11" %name="Dark chocolate-coated cookies" %q="These absorb light so well you almost need to squint to see them." %val="15" %cost="1000000000000" %req="10000000000" %icon="[10,3]"]
-	[include cookieU %id="12" %name="White chocolate-coated cookies" %q="These dazzling cookies absolutely glisten with flavor." %val="15" %cost="1000000000000" %req="10000000000" %icon="[11,3]"]
-	[include cookieU %id="13" %name="Eclipse cookies" %q="Look to the cookie." %val="15" %cost="10000000000000" %req="100000000000" %icon="[0,4]"]
-	[include cookieU %id="14" %name="Zebra" %q="..." %val="15" %cost="10000000000000" %req="100000000000" %icon="[1,4]"]
-
 	*goldenU1
 		name:Lucky day
 		desc:Golden cookies appear <b>twice as often</b> and stay <b>twice as long</b>. <//> <q>Oh hey, a four-leaf penny!</q>
@@ -841,6 +887,41 @@ Upgrades
 		req: (clickedGoldenCookies >= 77)
 		icon:icons[27,6]
 
+	*researchCenter
+		name:Bingo Center/Research facility
+		desc:Grandma-operated science lab and leisure club. Grandmas are <b>4 times</b> as efficient. <b>Regularly unlocks new upgrades</b>. <//> <q>What could possible keep those grandmothers in check?...Bingo.</q>
+		cost:100000000000 cookies
+		req:(have elderA and grandma >= 50)
+		on earn:grandmaMult = grandmaMult * 4
+		on earn:yield 1800 research
+		icon:icons[11,9]
+
+	[include cookieU %id="1" %name="Oatmeal raisin cookies" %q="No raisin to hate these." %val="5" %cost="100000000" %req="1000000" %icon="[0,3]"]
+	[include cookieU %id="2" %name="Peanut butter cookies" %q="Get yourself some jam cookies!" %val="5" %cost="100000000" %req="1000000" %icon="[1,3]"]
+	[include cookieU %id="3" %name="Plain cookies" %q="Meh." %val="5" %cost="100000000" %req="1000000" %icon="[2,3]"]
+	[include cookieU %id="4" %name="Sugar cookies" %q="=Tasty, if a little unimaginative." %val="5" %cost="100000000" %req="1000000" %icon="[7,3]"]
+	[include cookieU %id="5" %name="Coconut cookies" %q="These are *way* flaky." %val="5" %cost="1000000000" %req="10000000" %icon="[3,3]"]
+	[include cookieU %id="6" %name="White chocolate cookies" %q="I know what you'll say. It's just cocoa butter! It's not real chocolate! Oh please." %val="5" %cost="1000000000" %req="10000000" %icon="[4,3]"]
+	[include cookieU %id="7" %name="Macadamia nut cookies" %q="They're macadamn delicious!" %val="5" %cost="1000000000" %req="10000000" %icon="[5,3]"]
+	[include cookieU %id="8" %name="Double-chip cookies" %q="DOUBLE THE CHIPS <//> DOUBLE THE TASTY <//> (double the calories)" %val="10" %cost="100000000000" %req="1000000000" %icon="[6,3]"]
+	[include cookieU %id="9" %name="White chocolate macadamia nut cookies" %q="Orteil's favourite" %val="10" %cost="100000000000" %req="1000000000" %icon="[8,3]"]
+	[include cookieU %id="10" %name="All-chocolate cookies" %q="CHOCOVERDOSE" %val="10" %cost="100000000000" %req="1000000000" %icon="[9,3]"]
+	[include cookieU %id="11" %name="Dark chocolate-coated cookies" %q="These absorb light so well you almost need to squint to see them." %val="15" %cost="1000000000000" %req="10000000000" %icon="[10,3]"]
+	[include cookieU %id="12" %name="White chocolate-coated cookies" %q="These dazzling cookies absolutely glisten with flavor." %val="15" %cost="1000000000000" %req="10000000000" %icon="[11,3]"]
+	[include cookieU %id="13" %name="Eclipse cookies" %q="Look to the cookie." %val="15" %cost="10000000000000" %req="100000000000" %icon="[0,4]"]
+	[include cookieU %id="14" %name="Zebra" %q="..." %val="15" %cost="10000000000000" %req="100000000000" %icon="[1,4]"]
+	[include cookieU %id="15" %name="Snickerdoodles" %q="True to their name." %val="15" %cost="100000000000000" %req="1000000000000" %icon="[2,4]"]
+	[include cookieU %id="16" %name="Stroopwafels" %q="If it ain't dutch, it ain't much." %val="15" %cost="100000000000000" %req="1000000000000" %icon="[3,4]"]
+	[include cookieU %id="17" %name="Macaroons" %q="Not to be confused with macarons. These have coconut, okay?" %val="20" %cost="100000000000000" %req="1000000000000" %icon="[4,4]"]
+	[include cookieU %id="18" %name="Madeleines" %q="Unforgettable!" %val="15" %cost="200000000000000" %req="2000000000000" %icon="[12,3]"]
+	[include cookieU %id="19" %name="Palmiers" %q="Palmier than you! Yes, I just said that." %val="20" %cost="200000000000000" %req="2000000000000" %icon="[13,3]"]
+	[include cookieU %id="20" %name="Palets" %q="You could probably play hockey with these. I mean, you're welcome to try." %val="20" %cost="200000000000000" %req="2000000000000" %icon="[12,4]"]
+	[include cookieU %id="21" %name="Sablés" %q="The name implies they're made of sand. But you know better, don't you?" %val="20" %cost="200000000000000" %req="2000000000000" %icon="[13,4]"]
+	[include cookieU %id="22" %name="Gingerbread men" %q="You like to bite the legs off first, right? How about tearing off the arms? You sick monster." %val="25" %cost="10000000000000000" %req="100000000000000" %icon="[18,3]"]
+	[include cookieU %id="23" %name="Gingerbread trees" %q="Evergreens in pastry form. Yule be surprised what you can come up with." %val="25" %cost="10000000000000000" %req="100000000000000" %icon="[18,4]"]
+
+
+
 	[include milkU %id="1" %name="Kitten helpers" %q="meow may I help you" %val="0.2" %cost="9000000" %req="13" %icon="[18,0]"]
 	[include milkU %id="2" %name="Kitten workers" %q="meow meow meow meow" %val="0.4" %cost="9000000000" %req="25" %icon="[18,1]"]
 	[include milkU %id="3" %name="Kitten engineers" %q="meow meow meow meow, sir" %val="0.8" %cost="90000000000000" %req="50" %icon="[18,2]"]
@@ -851,6 +932,7 @@ Achievements
     *TEMPLATE
         on click:anim glow
 		passive:grant 1 totalAchievements
+		tag:prestige
 
 	[include cookieAchievement %id="cookies1" %name="Wake and bake" %val="1" %req="1" %icon="[0,5]"]
 	[include cookieAchievement %id="cookies2" %name="Starting fresh" %val="100" %req="100" %icon="[1,5]"]
